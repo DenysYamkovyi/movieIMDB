@@ -6,19 +6,17 @@
 //
 
 import Combine
+import XCTest
 @testable import MovieIMDB
 
-class FetchMoviesUseCaseMock: MoviesListViewModelUseCase {
+final class MockMoviesListViewModelUseCase: MoviesListViewModelUseCase {
+    var fetchMoviesResult: Result<[MovieModel], Error>?
     
-    var result: Result<[MovieModel], Error>?
-    
-    func fetchMovies(title: String?) -> AnyPublisher<[MovieModel], Error> {
-        return Future { promise in
-            if let result = self.result {
-                promise(result)
-            }
+    func fetchMovies(title: String) -> AnyPublisher<[MovieModel], Error> {
+        if let result = fetchMoviesResult {
+            return result.publisher.eraseToAnyPublisher()
+        } else {
+            return Fail(error: URLError(.badServerResponse)).eraseToAnyPublisher()
         }
-        .eraseToAnyPublisher()
     }
 }
-

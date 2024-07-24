@@ -29,9 +29,17 @@ class FetchMoviesUseCaseTests: XCTestCase {
         let useCase = FetchMoviesUseCase()
         let mockResponseData = """
         {
-            "Title": "Test Movie",
-            "Year": "2024",
-            "Poster": "https://example.com/poster.jpg"
+            "Search": [
+                {
+                    "Title": "Test Movie",
+                    "Year": "2024",
+                    "imdbID": "1111",
+                    "Type": "movie",
+                    "Poster": "https://example.com/poster.jpg"
+                }
+             ],
+            "totalResults": "1",
+            "Response": "True"
         }
         """.data(using: .utf8)!
         
