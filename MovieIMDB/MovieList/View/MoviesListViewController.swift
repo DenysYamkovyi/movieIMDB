@@ -16,7 +16,7 @@ protocol MoviesListViewControllerViewModel: ObservableObject {
     
     var error: PassthroughSubject<Error, Never> { get }
 
-    func userDidSearch(text: String?)
+    func userDidSearch(text: String)
     func userDidSelect(_ item: Movie)
 }
 
@@ -50,14 +50,11 @@ final class MoviesListViewController<ViewModel>: ViewController, UITableViewDele
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         setupDataSource()
         setupSubviews()
         setupSearchController()
         bindToViewModel()
         updateView()
-        
-        viewModel.userDidSearch(text: "")
     }
     
     private func setupSubviews() {
@@ -117,11 +114,15 @@ final class MoviesListViewController<ViewModel>: ViewController, UITableViewDele
             preferredStyle: .alert
         )
         
+        let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+        alertViewController.addAction(okAction)
+        
         present(alertViewController, animated: true)
     }
     
     func updateSearchResults(for searchController: UISearchController) {
-        viewModel.userDidSearch(text: searchController.searchBar.text)
+        guard let text = searchController.searchBar.text else { return }
+        viewModel.userDidSearch(text: text)
     }
     
     // MARK: - Delegate

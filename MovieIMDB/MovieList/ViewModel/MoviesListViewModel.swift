@@ -9,14 +9,18 @@ import Combine
 import UIKit
 
 protocol MoviesListViewModelUseCase {
-    func fetchMovies(title: String?) -> AnyPublisher<[MovieModel], Error>
+    func fetchMovies(title: String) -> AnyPublisher<[MovieModel], Error>
 }
 
 final class MoviesListViewModel: MoviesListViewControllerViewModel {
     @Published var movies: [MovieModel] = []
     @Published var isLoading: Bool = false
+    @Published var showError: Bool = false
+    @Published var errorMessage: String? = nil
     
     private let fetchMoviesUseCase: MoviesListViewModelUseCase
+    
+    private var lastSearch: String?
     
     private var originalMoviesList: [MovieModel] = [] {
         didSet {
@@ -34,14 +38,13 @@ final class MoviesListViewModel: MoviesListViewControllerViewModel {
         self.fetchMoviesUseCase = fetchMoviesUseCase
     }
 
-    func userDidSearch(text: String? = "") {
-        guard let text, !text.isEmpty else {
-            movies.removeAll()
-            return
-        }
-        
-        guard !isLoading else { return }
+    func userDidSearch(text: String) {
+        guard !isLoading, text.count > 2, lastSearch != text else { return }
         isLoading = true
+        
+        lastSearch = text
+        showError = false
+        errorMessage = nil
         
         fetchMoviesUseCase
             .fetchMovies(title: text)
@@ -50,19 +53,29 @@ final class MoviesListViewModel: MoviesListViewControllerViewModel {
                 self?.isLoading = false
                 switch result {
                 case let .failure(error):
+                    self?.showError = true
+                    self?.errorMessage = error.localizedDescription
                     self?.error.send(error)
                 default:
                     break
                 }
             }, receiveValue: { [weak self] movies in
-                self?.originalMoviesList = movies
+                guard let self else { return }
+                self.originalMoviesList = movies
+                movies.forEach { model in
+                    model.onButtonAction.sink { [weak self] _ in self?.userDidTapMoreFor(model) }
+                        .store(in: &self.cancellables)
+                }
             })
             .store(in: &cancellables)
     }
     
     func userDidSelect(_ item: MovieModel) {
-        // just for presentation. Uncomment for the navigation to the overview screen
-        // _showMovieOverview.subject.send(item)
+         _showMovieOverview.subject.send(item)
+    }
+    
+    private func userDidTapMoreFor(_ model: MovieModel) {
+        print("BUTTON ACTION")
     }
 }
 

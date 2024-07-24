@@ -12,6 +12,8 @@ protocol MovieTableViewCellViewModel {
     var title: String { get }
     var thumbnail: String { get }
     var year: String { get }
+    
+    var onButtonAction: PassthroughSubject<Void, Never> { get }
 }
 
 class MovieTableViewCellView: UITableViewCell {
@@ -57,7 +59,7 @@ class MovieTableViewCellView: UITableViewCell {
 
         NSLayoutConstraint.activate([
             movieImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
-            movieImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            movieImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
             movieImageView.heightAnchor.constraint(equalTo: movieImageView.widthAnchor, multiplier: 1.5),
             movieImageView.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -8)
         ])
@@ -113,6 +115,11 @@ class MovieTableViewCellView: UITableViewCell {
 extension MovieTableViewCellView: Configurable {
     func configure(with viewModel: MovieTableViewCellViewModel) {
         cancellables.removeAll()
+        
+        moreButton.removeAction(identifiedBy: .init("tap"), for: .touchUpInside)
+        moreButton.addAction(.init(identifier: .init("tap"), handler: { action in
+            viewModel.onButtonAction.send(())
+        }), for: .touchUpInside)
         
         titleLabel.text = viewModel.title
         yearLabel.text = viewModel.year

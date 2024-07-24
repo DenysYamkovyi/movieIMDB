@@ -37,7 +37,7 @@ final class MoviesListCoordinator: Coordinator {
     }
     
     private func showMovieOverview(movie: MovieModel) {
-        let viewModel = MovieOverviewViewModel(movie: movie)
+        let viewModel = MovieOverviewViewModel(movie: movie, imageLoader: ImageLoader())
         let viewController = MovieOverviewViewController(viewModel: viewModel)
 
         navigationController?.pushViewController(viewController, animated: true)
